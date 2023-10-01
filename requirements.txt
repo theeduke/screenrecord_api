@@ -11,9 +11,9 @@ click-plugins==1.1.1
 click-repl==0.3.0
 colorama==0.4.6
 dj-whisperer==0.2.15
-Django==4.2.5
+Django
 filelock==3.12.4
-gunicorn==21.2.0
+gunicorn
 idna==3.4
 Jinja2==3.1.2
 kombu==5.3.2
