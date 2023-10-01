@@ -37,7 +37,7 @@ regex
 requests
 six
 sqlparse
-symp
+sympy
 tiktoken
 torch
 tqdm
