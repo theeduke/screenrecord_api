@@ -28,9 +28,9 @@ openai-whisper @ git+https://github.com/openai/whisper.git@0a60fcaa9b86748389a65
 packaging
 prompt-toolkit
 pycparser
-python-dateutil==2.8.2
-python-decouple==3.8
-python-dotenv==1.0.0
+python-dateutil
+python-decouple
+python-dotenv
 rabbitmq
 rabbitmq-server
 regex
