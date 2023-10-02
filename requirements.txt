@@ -12,6 +12,7 @@ click-repl==0.3.0
 colorama==0.4.6
 dj-whisperer==0.2.15
 Django
+djangorestframework
 filelock
 gunicorn
 idna==3.4

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'screenrecord',
     'whisper',
     'celery',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [

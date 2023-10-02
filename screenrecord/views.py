@@ -2,11 +2,14 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from .models import screenRecording
 import os
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
 from .forms import VideoUploadForm
 from .tasks import transcribe_video
 from celery.result import AsyncResult
 # Create your views here.
-
+@api_view(['POST'])
 def receive_screen_recording(request):
     if request.method == 'POST':
         form = VideoUploadForm(request.POST, request.FILES)
@@ -21,11 +24,10 @@ def receive_screen_recording(request):
                     destination.write(chunk)
                     
             #redirect to video playback page
-            return redirect('playback', video_name=video_name)
-    else:
-        form = VideoUploadForm()
-    return render(request, 'upload.html', {'form': form})
-
+            return Response({'video_name': video_name}, status=status.HTTP_201_CREATED)
+    return Response({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET'])
 def playback(request, video_name):
     video_path = os.path.join('media','uploads', video_name)
     
@@ -36,16 +38,15 @@ def playback(request, video_name):
         if result.successful():
             transcript = result.result
             # Handle the transcript, save to database, display to user
-            return render(request, 'playback.html', {'recording': recording, 'transcript': transcript})
+            return Response({'recording': recording, 'transcript': transcript}, status=status.HTTP_200_OK)
         elif result.failed():
             error_message = str(result.result)
-            return JsonResponse({'error': error_message})
+            return Response({'error': error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return JsonResponse({'status': 'in_progress'})
-        #if the trascription has not been initiated
+            return Response({'status': 'in_progress'}, status=status.HTTP_200_OK)
     else:
         task_result = transcribe_video.delay(video_path)
         recording.transcription_task_id = task_result.id
         recording.save()
         
-        return JsonResponse({'status': 'transcription_initiated'})
+        return Response({'status': 'transcription_initiated'}, status=status.HTTP_200_OK)
