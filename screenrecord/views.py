@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from .models import screenRecording
 import os
 from rest_framework.decorators import api_view
@@ -38,7 +38,13 @@ def playback(request, video_name):
         if result.successful():
             transcript = result.result
             # Handle the transcript, save to database, display to user
-            return Response({'recording': recording, 'transcript': transcript}, status=status.HTTP_200_OK)
+            try:
+                with open(transcript, 'rb') as transcript:
+                    response = StreamingHttpResponse(transcript, content_type='video/mp4')
+                    response['Content-Disposition'] = f'inline; filename="{video_name}"'
+                    return response
+            except FileNotFoundError:
+                return JsonResponse({'error': 'Transcribed video not found'}, status=404)
         elif result.failed():
             error_message = str(result.result)
             return Response({'error': error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -50,3 +56,4 @@ def playback(request, video_name):
         recording.save()
         
         return Response({'status': 'transcription_initiated'}, status=status.HTTP_200_OK)
+    
