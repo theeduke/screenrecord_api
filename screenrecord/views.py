@@ -1,5 +1,5 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import StreamingHttpResponse, JsonResponse
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
 from .models import screenRecording
 import os
 from .forms import VideoUploadForm
@@ -13,7 +13,7 @@ def receive_screen_recording(request):
         if form.is_valid():
             video = form.cleaned_data['video']
             video_name = video.name
-            video_path = os.path.join('uploads', video_name)
+            video_path = os.path.join('media','uploads', video_name)
             
             #save the video to 'uploads' directory
             with open(video_path,  'wb') as destination:
@@ -27,7 +27,7 @@ def receive_screen_recording(request):
     return render(request, 'upload.html', {'form': form})
 
 def playback(request, video_name):
-    video_path = os.path.join('uploads', video_name)
+    video_path = os.path.join('media','uploads', video_name)
     
     # Check if transcription task is complete
     recording = screenRecording.objects.filter(video=video_path).first()
@@ -35,13 +35,14 @@ def playback(request, video_name):
         result = AsyncResult(recording.transcription_task_id)
         if result.successful():
             transcript = result.result
-            # Handle the transcript, e.g., save to database, display to user
+            # Handle the transcript, save to database, display to user
             return render(request, 'playback.html', {'recording': recording, 'transcript': transcript})
         elif result.failed():
             error_message = str(result.result)
             return JsonResponse({'error': error_message})
         else:
             return JsonResponse({'status': 'in_progress'})
+        #if the trascription has not been initiated
     else:
         task_result = transcribe_video.delay(video_path)
         recording.transcription_task_id = task_result.id
