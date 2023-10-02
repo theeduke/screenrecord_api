@@ -43,4 +43,8 @@ def playback(request, video_name):
         else:
             return JsonResponse({'status': 'in_progress'})
     else:
-        return JsonResponse({'error': 'Transcription not yet initiated.'})
+        task_result = transcribe_video.delay(video_path)
+        recording.transcription_task_id = task_result.id
+        recording.save()
+        
+        return JsonResponse({'status': 'transcription_initiated'})
