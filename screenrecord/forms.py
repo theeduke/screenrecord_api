@@ -1,4 +1,7 @@
 from django import forms
+from .models import screenRecording
 
 class VideoUploadForm(forms.Form):
-    video = forms.FileField
+    class Meta:
+        model = screenRecording
+        fields = ["video"]
